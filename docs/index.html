@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>caps REC — Turn caps lock into your record button.</title>
+<meta name="description" content="Press caps lock to record your Mac's screen, system audio and microphone into one file. No virtual audio driver. macOS 15+.">
+<meta name="theme-color" content="#000000">
+<meta property="og:type" content="website">
+<meta property="og:title" content="caps REC — Turn caps lock into your record button.">
+<meta property="og:description" content="Press caps lock to record your Mac's screen, system audio and microphone into one file. No virtual audio driver. macOS 15+.">
+<meta property="og:url" content="https://tokyomeltdown.github.io/capsrec/">
+<meta property="og:image" content="https://tokyomeltdown.github.io/capsrec/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="caps REC — Turn caps lock into your record button.">
+<meta property="og:site_name" content="tokyomeltdown">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --bg:#000; --panel:#0D0D0F; --panel2:#141416; --line:rgba(255,255,255,.10);
+    --fg:#F5F5F7; --fg2:#86868B; --fg3:#6E6E73;
+    --led:#31D158; --ledsoft:rgba(49,209,88,.30);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--fg);line-height:1.6;font-size:17px;letter-spacing:.004em;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Hiragino Sans","Noto Sans JP",sans-serif;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:inherit}
+  .mono{font-size:13px;letter-spacing:0;color:#6DD498;font-weight:600}
+
+  /* 見出し用。横方向に色相だけを回し、明度は落とさない（暗くすると和文が潰れる） */
+  .g-head{
+    background:linear-gradient(100deg,#A8EFC6 0%,#6ADB9B 34%,#45D3B8 66%,#5CC9E0 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+  }
+  @supports not ((-webkit-background-clip:text) or (background-clip:text)){
+    .g-head{-webkit-text-fill-color:#6ADB9B;color:#6ADB9B}
+  }
+  .num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;letter-spacing:.08em;color:var(--fg3)}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 28px}
+  .en,.ja{display:none}
+  body.lang-en .en{display:initial} body.lang-ja .ja{display:initial}
+  body.lang-en h1 .en,body.lang-ja h1 .ja{display:block}
+
+  nav{position:sticky;top:0;z-index:30;background:rgba(0,0,0,.68);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:54px}
+  .brand{display:flex;align-items:center;gap:10px;font-size:14px}
+  .navdot{width:8px;height:8px;border-radius:50%;background:#3A3A3E;transition:.25s}
+  .navdot.on{background:var(--led);box-shadow:0 0 14px 3px var(--ledsoft)}
+  .navright{display:flex;align-items:center;gap:18px}
+  .lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .lang button{background:none;border:0;color:var(--fg3);font:inherit;font-size:12px;padding:4px 12px;cursor:pointer}
+  .lang button.on{background:rgba(255,255,255,.08);color:var(--fg)}
+  .navbuy{font-size:13px;color:var(--fg2);text-decoration:none}
+  .navbuy:hover{color:var(--fg)}
+
+  .stage{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:96px 0 56px}
+  #glow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .stage .wrap{position:relative;z-index:2}
+  .eyebrow{margin-bottom:14px}
+  h1{font-size:clamp(40px,6.4vw,80px);line-height:1.06;letter-spacing:-.035em;font-weight:600}
+  h1 em{font-style:normal;font-weight:600;display:block}
+  .lede{margin-top:20px;max-width:30em;font-size:21px;line-height:1.42;letter-spacing:.007em;color:var(--fg2)}
+
+  .demo{margin-top:46px;display:flex;align-items:center;gap:36px;flex-wrap:wrap}
+  .key{position:relative;width:196px;height:80px;border-radius:12px;cursor:pointer;user-select:none;
+    background:linear-gradient(180deg,#2A2A2E,#141417);border:1px solid rgba(255,255,255,.09);
+    box-shadow:0 12px 26px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.07);transition:transform .12s}
+  .key:active{transform:translateY(2px)}
+  .key .lbl{position:absolute;left:16px;bottom:12px;font-size:13px;color:#C9CBCA}
+  .key .led{position:absolute;left:16px;top:15px;width:9px;height:9px;border-radius:50%;background:#232326;transition:.2s}
+  .key.on .led{background:var(--led);box-shadow:0 0 16px 4px var(--ledsoft)}
+  .readout{min-width:252px}
+  .status{display:flex;align-items:center;gap:10px;font-size:15px}
+  .rdot{width:10px;height:10px;border-radius:50%;background:#3A3A3E}
+  .rdot.on{background:var(--led);animation:bp 1.4s ease-in-out infinite}
+  @keyframes bp{0%,100%{opacity:1}50%{opacity:.35}}
+  .timer{font-family:ui-monospace,Menlo,monospace;font-size:34px;margin-top:4px}
+  #bars{display:block;margin-top:8px;width:252px;height:34px}
+  .hint{font-size:12px;color:var(--fg3);margin-top:10px}
+
+  .filecard{margin-top:28px;display:none;align-items:center;gap:14px;background:var(--panel);
+    border:1px solid var(--line);border-radius:12px;padding:14px 18px;max-width:440px}
+  .filecard.show{display:flex;animation:rise .4s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .fic{width:34px;height:34px;border-radius:8px;background:#17181A;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--fg2)}
+  .fname{font-size:14px}.fmeta{font-size:13px;color:var(--fg2)}
+
+  .cta{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:34px}
+  .btn{display:inline-flex;align-items:center;height:48px;padding:0 26px;border-radius:980px;font-size:17px;text-decoration:none;transition:.2s}
+  .btn-p{background:var(--led);color:#06210F;font-weight:500}
+  .btn-p:hover{filter:brightness(1.08)}
+  .btn-g{border:1px solid rgba(255,255,255,.28)}
+  .btn-g:hover{background:rgba(255,255,255,.07)}
+  .spec{margin-top:18px;font-size:13px;color:var(--fg3)}
+
+  section{padding:130px 0;border-top:1px solid var(--line)}
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  h2{font-size:clamp(32px,4.2vw,52px);line-height:1.1;letter-spacing:-.03em;font-weight:600}
+  .slede{margin-top:20px;max-width:34em;color:var(--fg2);font-size:19px;line-height:1.5}
+  .sh{margin-bottom:16px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:46px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px}
+  .card h3{font-size:15px;font-weight:600;margin-bottom:8px}
+  .card p{font-size:14px;color:var(--fg2)}
+
+  .rows{margin-top:52px;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .row{background:var(--panel);padding:34px}
+  .row .mono{display:block;margin-bottom:10px}
+  .row h3{font-size:clamp(19px,2.2vw,25px);font-weight:600;letter-spacing:-.01em}
+  .row p{margin-top:10px;color:var(--fg2);font-size:15px;max-width:44em}
+
+  .trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:46px}
+  .trust div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
+  .trust h3{font-size:15px;font-weight:600;margin-bottom:8px}
+  .trust p{font-size:14px;color:var(--fg2)}
+
+  .pricebox{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:38px;max-width:520px;margin-top:40px}
+  .amt{font-size:46px;font-weight:600;letter-spacing:-.025em}
+  ul.ck{list-style:none;margin-top:22px;display:grid;gap:10px}
+  ul.ck li{font-size:14px;color:var(--fg2);padding-left:20px;position:relative}
+  ul.ck li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--led)}
+
+  .faq{margin-top:46px;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .faq div{background:var(--panel);padding:26px 30px}
+  .faq h3{font-size:15px;font-weight:600;margin-bottom:8px}
+  .faq p{font-size:14px;color:var(--fg2)}
+
+  .closer{text-align:center;padding:140px 0}
+  .closer h2{max-width:16em;margin:0 auto}
+  /* アプリアイコンのリングを小さく再現し、コピーの「ランプ」を受ける */
+  .lamp{width:38px;height:38px;margin:0 auto 30px;border-radius:50%;
+    border:4px solid transparent;
+    background:linear-gradient(#000,#000) padding-box,
+      linear-gradient(177deg,#A9EEC6,#6DD498 55%,#3FB471) border-box;
+    box-shadow:0 0 30px 6px rgba(77,195,126,.30);position:relative}
+  .lamp::after{content:"";position:absolute;inset:7px;border-radius:50%;background:#F0FFF5;
+    box-shadow:0 0 12px 2px rgba(240,255,245,.35)}
+  .closer .cta{justify-content:center}
+
+  footer{padding:52px 0 72px;border-top:1px solid var(--line);color:var(--fg3);font-size:13px}
+  footer a{margin-right:20px;color:var(--fg2);text-decoration:none}
+  section[id]{scroll-margin-top:74px}
+  a:focus-visible,button:focus-visible,.key:focus-visible{outline:2px solid var(--led);outline-offset:4px;border-radius:8px}
+  @media(prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .reveal{opacity:1;transform:none;transition:none}
+    .rdot.on{animation:none}
+    .key,.btn{transition:none}
+  }
+  @media(max-width:700px){.key{width:164px;height:70px}.demo{gap:24px}section{padding:88px 0}}
+</style>
+</head>
+<body class="lang-ja">
+
+<nav><div class="wrap">
+  <div class="brand"><span class="navdot" id="navdot"></span> caps REC</div>
+  <div class="navright">
+    <div class="lang">
+      <button id="btn-en">EN</button><button id="btn-ja" class="on">JA</button>
+    </div>
+    <a class="navbuy" href="https://tokyomeltdown.gumroad.com/l/capsrec"><span class="en">Buy $9</span><span class="ja">購入 $9</span></a>
+  </div>
+</div></nav>
+
+<header class="stage">
+  <canvas id="glow"></canvas>
+  <div class="wrap">
+    <p class="mono eyebrow">caps REC for macOS</p>
+    <h1>
+      <span class="en">Turn caps lock<em class="g-head">into your record button.</em></span>
+      <span class="ja">caps lockを、<em class="g-head">録画ボタンに。</em></span>
+    </h1>
+    <p class="lede">
+      <span class="en">Press it and recording starts. Press it again and the file is saved — your screen, the sound your Mac is making, and your voice, together in one video.</span>
+      <span class="ja">押した瞬間に録画がはじまり、もう一度押すと保存されます。画面と、Macで鳴っている音と、あなたの声が、1本の動画になります。</span>
+    </p>
+
+    <div class="demo">
+      <div class="key" id="key" role="button" tabindex="0" aria-pressed="false" aria-label="caps lock"><span class="led"></span><span class="lbl">caps lock</span></div>
+      <div class="readout">
+        <div class="status"><span class="rdot" id="rdot"></span><span id="stext"></span></div>
+        <div class="timer" id="timer">00:00</div>
+        <canvas id="bars" width="504" height="68"></canvas>
+        <p class="hint" id="hint"></p>
+      </div>
+    </div>
+
+    <div class="filecard" id="fcard">
+      <div class="fic">▶</div>
+      <div><div class="fname" id="fname"></div><div class="fmeta" id="fmeta"></div></div>
+    </div>
+
+    <div class="cta">
+      <a class="btn btn-p" href="https://tokyomeltdown.gumroad.com/l/capsrec"><span class="en">Try free for 14 days</span><span class="ja">14日間ためす</span></a>
+      <a class="btn btn-g" href="#price"><span class="en">See pricing</span><span class="ja">価格を見る</span></a>
+    </div>
+    <p class="spec"><span class="en">macOS 15+ · Apple silicon &amp; Intel · Signed &amp; notarized · No virtual audio driver</span>
+      <span class="ja">macOS 15+ · Apple silicon &amp; Intel · 署名・公証済み · 仮想オーディオドライバ不要</span></p>
+  </div>
+</header>
+
+<section><div class="wrap reveal">
+  <div class="sh"><span class="num">01</span></div>
+  <h2><span class="en">The record button is already<br>under your finger.</span><span class="ja">録画ボタンは、<br>すでに指の下にあります。</span></h2>
+  <p class="slede"><span class="en">No window to pick, no region to drag, no red button to find. The moment you want to record, you already are.</span>
+    <span class="ja">ウィンドウを選んで、範囲を決めて、赤いボタンを探す——その数秒が要りません。録りたいと思った瞬間には、もう録れています。</span></p>
+  <div class="grid">
+    <div class="card"><h3><span class="en">Screen</span><span class="ja">画面</span></h3>
+      <p><span class="en">Your main display at its real scale. Three quality presets, sized by pixels rather than guesswork.</span><span class="ja">メインディスプレイを実際のスケールで。画質は3段階、ピクセル数に連動して決まります。</span></p></div>
+    <div class="card"><h3><span class="en">System audio</span><span class="ja">システム音</span></h3>
+      <p><span class="en">Whatever your Mac is playing, captured directly. No BlackHole, no virtual audio device to install.</span><span class="ja">Macで鳴っている音を直接。BlackHoleなどの仮想オーディオデバイスは要りません。</span></p></div>
+    <div class="card"><h3><span class="en">Microphone</span><span class="ja">マイク</span></h3>
+      <p><span class="en">Pick the device and the input channel — even on a multi-channel interface. Delay compensation included.</span><span class="ja">デバイスと入力チャンネルを指定できます。多chのオーディオインターフェースでも、遅延補正つきで。</span></p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap reveal">
+  <div class="sh"><span class="num">02</span></div>
+  <h2><span class="en">Built for people who<br>work with sound.</span><span class="ja">音を扱う人のために。</span></h2>
+  <div class="rows">
+    <div class="row"><span class="mono"><span class="en">Plugin &amp; gear demos</span><span class="ja">プラグイン紹介</span></span>
+      <h3><span class="en">Record the plugin and your commentary at once.</span><span class="ja">プラグインの音も、解説の声も、同時に。</span></h3>
+      <p><span class="en">The audio your DAW is producing and your microphone land in the same file, already in sync.</span><span class="ja">DAWが鳴らしている音とマイクの声が、同期した状態で1本にまとまります。</span></p></div>
+    <div class="row"><span class="mono"><span class="en">Separate stems</span><span class="ja">分離書き出し</span></span>
+      <h3><span class="en">Or keep them apart, for editing later.</span><span class="ja">あとで編集するなら、分けて書き出す。</span></h3>
+      <p><span class="en">One switch writes system audio and microphone as separate 48 kHz WAV files alongside the video.</span><span class="ja">スイッチ1つで、システム音とマイクを48kHzのWAVとして別々に書き出せます。DAWへの取り込みに。</span></p></div>
+    <div class="row"><span class="mono"><span class="en">Always visible</span><span class="ja">状態が見える</span></span>
+      <h3><span class="en">The key itself tells you it's recording.</span><span class="ja">録っていることは、キーが教えてくれる。</span></h3>
+      <p><span class="en">The caps lock lamp is lit the whole time, and the menu bar icon glows green. Nothing runs on without you noticing.</span><span class="ja">録画中はcaps lockのランプが点いたまま。メニューバーのアイコンも緑に灯るので、切り忘れが起きません。</span></p></div>
+  </div>
+</div></section>
+
+<section id="privacy"><div class="wrap reveal">
+  <div class="sh"><span class="num">03</span></div>
+  <h2><span class="en">What it doesn't do.</span><span class="ja">しないこと。</span></h2>
+  <p class="slede"><span class="en">A screen recorder sees everything you do. Here is exactly where your recordings go.</span>
+    <span class="ja">画面録画アプリは、あなたの作業のすべてを見ています。だから、録ったものがどこへ行くのかを明確にしておきます。</span></p>
+  <div class="trust">
+    <div><h3><span class="en">Your recordings stay on your Mac</span><span class="ja">録画データはMacから出ません</span></h3>
+      <p><span class="en">Files are written to the folder you choose. Nothing is uploaded, ever.</span><span class="ja">指定したフォルダに保存されるだけです。アップロードは一切行いません。</span></p></div>
+    <div><h3><span class="en">The network is used once</span><span class="ja">通信は1回だけ</span></h3>
+      <p><span class="en">Only to check your licence key when you activate. After that it works offline.</span><span class="ja">ライセンスキーを認証するときだけ。以降はオフラインでも動作します。</span></p></div>
+    <div><h3><span class="en">Keystrokes are not read</span><span class="ja">キー入力は読みません</span></h3>
+      <p><span class="en">caps REC reads whether the caps lock lamp is on. It never asks for input monitoring.</span><span class="ja">読んでいるのはcaps lockが点灯しているかどうかだけ。入力監視の権限は要求しません。</span></p></div>
+  </div>
+</div></section>
+
+<section id="price"><div class="wrap reveal">
+  <div class="sh"><span class="num">04</span></div>
+  <h2><span class="en">Try everything for 14 days.</span><span class="ja">まず14日間、全部ためす。</span></h2>
+  <p class="slede"><span class="en">No feature is held back during the trial. Buy it only if you still want it at the end.</span>
+    <span class="ja">試用中の機能制限はありません。期間が終わってから、続けたいと思ったときだけ購入してください。</span></p>
+  <div class="pricebox">
+    <div class="amt">$9</div>
+    <ul class="ck">
+      <li><span class="en">One-time purchase, not a subscription</span><span class="ja">買い切り。サブスクリプションではありません</span></li>
+      <li><span class="en">Updates included</span><span class="ja">アップデートは無料</span></li>
+      <li><span class="en">One licence covers up to 5 Macs</span><span class="ja">1つのライセンスで最大5台まで</span></li>
+      <li><span class="en">No refunds — that's what the free trial is for</span><span class="ja">返金不可。14日間の無料期間でお確かめください</span></li>
+    </ul>
+    <div class="cta"><a class="btn btn-p" href="https://tokyomeltdown.gumroad.com/l/capsrec"><span class="en">Buy caps REC</span><span class="ja">購入する</span></a></div>
+  </div>
+</div></section>
+
+<section><div class="wrap reveal">
+  <div class="sh"><span class="num">05</span></div>
+  <h2><span class="en">Questions.</span><span class="ja">よくある質問。</span></h2>
+  <div class="faq">
+    <div><h3><span class="en">Do I need BlackHole or another audio driver?</span><span class="ja">BlackHoleなどの仮想オーディオドライバは必要ですか？</span></h3>
+      <p><span class="en">No. caps REC captures system audio through macOS itself.</span><span class="ja">不要です。macOSの仕組みを使ってシステム音を直接録ります。</span></p></div>
+    <div><h3><span class="en">Will typing be stuck in capitals while recording?</span><span class="ja">録画中は大文字入力になりますか？</span></h3>
+      <p><span class="en">Yes — caps lock is on, so it behaves as caps lock. You can also start and stop from the menu instead.</span><span class="ja">はい。caps lockが点灯している状態なので大文字になります。メニューから録画を開始／停止することもできます。</span></p></div>
+    <div><h3><span class="en">Which permissions does it ask for?</span><span class="ja">求められる許可は？</span></h3>
+      <p><span class="en">Screen recording, microphone, and access to your save folder. Input monitoring is never requested.</span><span class="ja">画面収録・マイク・保存先フォルダの3つです。入力監視は要求しません。</span></p></div>
+    <div><h3><span class="en">What happens after the 14 days?</span><span class="ja">14日が過ぎたらどうなりますか？</span></h3>
+      <p><span class="en">Recording stops. There is no reduced-feature mode and no watermark — you enter your licence key and carry on where you left off. Because there are no refunds, please decide during the trial.</span><span class="ja">録画ができなくなります。機能を削った状態やウォーターマーク付きで使い続けることはできません。ライセンスキーを入力すればそのまま再開できます。返金は受け付けていないので、無料期間中にお確かめください。</span></p></div>
+    <div><h3><span class="en">How do I uninstall it?</span><span class="ja">アンインストールは？</span></h3>
+      <p><span class="en">Move capsREC to the Trash. That's all.</span><span class="ja">capsRECをゴミ箱に入れるだけです。</span></p></div>
+  </div>
+</div></section>
+
+<div class="closer wrap reveal">
+  <div class="lamp" aria-hidden="true"></div>
+  <h2><span class="en">That light finally<br>means something.</span><span class="ja">そのランプは、<br>もう飾りじゃない。</span></h2>
+  <div class="cta"><a class="btn btn-p" href="https://tokyomeltdown.gumroad.com/l/capsrec"><span class="en">Try free for 14 days</span><span class="ja">14日間ためす</span></a></div>
+  <p class="spec"><span class="en">macOS 15+ · Signed &amp; notarized · $9 one-time</span><span class="ja">macOS 15+ · 署名・公証済み · $9 買い切り</span></p>
+</div>
+
+<footer><div class="wrap">
+  <a href="#privacy"><span class="en">Privacy</span><span class="ja">プライバシー</span></a>
+  <a href="mailto:tokyomeltdown.ai@gmail.com?subject=caps%20REC%20support"><span class="en">Support</span><span class="ja">サポート</span></a>
+  <p style="margin-top:16px">© 2026 tokyomeltdown</p>
+</div></footer>
+
+<script>
+(function(){
+  var T={ja:{idle:'待機中',rec:'録画中',hint0:'キーが無い場合は、上のキーをクリック',hint1:'もう一度押すと停止します',meta:'画面 + システム音 + マイク · '},
+          en:{idle:'Idle',rec:'Recording',hint0:'No caps lock key? Click the key above',hint1:'Press again to stop',meta:'Screen + system audio + mic · '}};
+  var lang='ja', rec=false, t0=0, phase=0;
+  var key=document.getElementById('key'),rdot=document.getElementById('rdot'),stext=document.getElementById('stext'),
+      timer=document.getElementById('timer'),navdot=document.getElementById('navdot'),fcard=document.getElementById('fcard'),
+      fname=document.getElementById('fname'),fmeta=document.getElementById('fmeta'),hint=document.getElementById('hint');
+  var raf=0;
+  var bars=document.getElementById('bars'),bx=bars.getContext('2d'),glow=document.getElementById('glow'),gx=glow.getContext('2d');
+
+  function fit(){glow.width=glow.offsetWidth*2;glow.height=glow.offsetHeight*2}
+  window.addEventListener('resize',fit);fit();
+  function pad(n){return(n<10?'0':'')+n}
+  function fmt(ms){var s=Math.floor(ms/1000);return pad(Math.floor(s/60))+':'+pad(s%60)}
+  function stamp(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+pad(d.getSeconds())}
+
+  function setLang(l){
+    lang=l; document.body.className='lang-'+l;
+    document.documentElement.lang=l;
+    document.getElementById('btn-en').classList.toggle('on',l==='en');
+    document.getElementById('btn-ja').classList.toggle('on',l==='ja');
+    stext.textContent=rec?T[l].rec:T[l].idle;
+    hint.textContent=rec?T[l].hint1:T[l].hint0;
+  }
+  document.getElementById('btn-en').onclick=function(){setLang('en')};
+  document.getElementById('btn-ja').onclick=function(){setLang('ja')};
+
+  function draw(){
+    if(rec) timer.textContent=fmt(Date.now()-t0);
+    phase+=rec?0.09:0.02;
+    bx.clearRect(0,0,bars.width,bars.height);
+    var n=46,w=bars.width/n;
+    for(var i=0;i<n;i++){
+      var a=rec?(Math.sin(phase+i*0.42)*0.5+0.5)*(0.35+0.65*Math.random()):0.05;
+      var h=Math.max(3,a*bars.height*0.9);
+      bx.fillStyle=rec?'rgba(49,209,88,'+(0.26+a*0.6)+')':'rgba(255,255,255,0.07)';
+      bx.fillRect(i*w+1,(bars.height-h)/2,w-3,h);
+    }
+    gx.clearRect(0,0,glow.width,glow.height);
+    if(rec){
+      var cx=glow.width*0.42,cy=glow.height*0.55,r=glow.width*(0.34+0.02*Math.sin(phase*0.8));
+      var g=gx.createRadialGradient(cx,cy,0,cx,cy,r);
+      g.addColorStop(0,'rgba(49,209,88,0.13)');g.addColorStop(0.55,'rgba(49,209,88,0.045)');g.addColorStop(1,'rgba(49,209,88,0)');
+      gx.fillStyle=g;gx.fillRect(0,0,glow.width,glow.height);
+    }
+    if(rec && !document.hidden) raf=requestAnimationFrame(draw);
+    else raf=0;
+  }
+  function kick(){ if(!raf) raf=requestAnimationFrame(draw) }
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden&&rec)kick() });
+
+  function setRec(v){
+    if(v===rec)return; rec=v;
+    key.classList.toggle('on',v);rdot.classList.toggle('on',v);navdot.classList.toggle('on',v);
+    stext.textContent=v?T[lang].rec:T[lang].idle;
+    hint.textContent=v?T[lang].hint1:T[lang].hint0;
+    key.setAttribute('aria-pressed',v?'true':'false');
+    if(v){t0=Date.now();fcard.classList.remove('show');kick()}
+    else{
+      var el=Date.now()-t0; timer.textContent='00:00';
+      draw();
+      if(el>600){fname.textContent='capsREC_'+stamp()+'.mp4';fmeta.textContent=T[lang].meta+fmt(el);fcard.classList.add('show')}
+    }
+  }
+  document.addEventListener('keydown',function(e){
+    if(e.key==='CapsLock'){setRec(!rec);return}
+    if(e.getModifierState){var s=e.getModifierState('CapsLock');if(s!==rec)setRec(s)}
+  });
+  key.onclick=function(){setRec(!rec)};
+  key.addEventListener('keydown',function(e){
+    if(e.key===' '||e.key==='Enter'){e.preventDefault();setRec(!rec)}
+  });
+
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
+
+  setLang((navigator.language||'ja').slice(0,2)==='ja'?'ja':'en');
+  draw();   // 待機状態を1回描画（以降は録画中のみループ）
+})();
+</script>
+</body>
+</html>

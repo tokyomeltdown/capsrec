@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -156,13 +156,13 @@
   @media(max-width:700px){.key{width:164px;height:70px}.demo{gap:24px}section{padding:88px 0}}
 </style>
 </head>
-<body class="lang-ja">
+<body class="lang-en">
 
 <nav><div class="wrap">
   <div class="brand"><span class="navdot" id="navdot"></span> caps REC</div>
   <div class="navright">
     <div class="lang">
-      <button id="btn-en">EN</button><button id="btn-ja" class="on">JA</button>
+      <button id="btn-en" class="on">EN</button><button id="btn-ja">日本語</button>
     </div>
     <a class="navbuy" href="https://tokyomeltdown.gumroad.com/l/capsrec" target="_blank" rel="noopener noreferrer"><span class="en">Buy $9</span><span class="ja">購入 $9</span></a>
   </div>
@@ -375,7 +375,7 @@
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.12});
   document.querySelectorAll('.reveal').forEach(function(el){io.observe(el)});
 
-  setLang((navigator.language||'ja').slice(0,2)==='ja'?'ja':'en');
+  setLang((navigator.language||'en').slice(0,2)==='ja'?'ja':'en');
   draw();   // 待機状態を1回描画（以降は録画中のみループ）
 })();
 </script>

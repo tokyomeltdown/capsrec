@@ -4,8 +4,9 @@
 
 Press caps lock and your Mac starts recording. Press it again and the file is saved — your screen, the sound your Mac is making, and your voice, together in one video.
 
-→ **[capsrec landing page](https://tokyomeltdown.github.io/capsrec/)**
-→ **[Buy on Gumroad — $9, 14-day free trial](https://tokyomeltdown.gumroad.com/l/capsrec)**
+→ **[Download the free trial](https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg)** — 14 days, every feature, no account needed
+→ **[Landing page](https://tokyomeltdown.github.io/capsrec/)**
+→ **[Buy on Gumroad — $9](https://tokyomeltdown.gumroad.com/l/capsrec)**
 
 ---
 

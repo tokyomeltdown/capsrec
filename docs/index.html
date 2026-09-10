@@ -10,6 +10,10 @@
 <meta property="og:title" content="caps REC — Turn caps lock into your record button.">
 <meta property="og:description" content="Press caps lock to record your Mac's screen, system audio and microphone into one file. No virtual audio driver. macOS 15+.">
 <meta property="og:url" content="https://tokyomeltdown.github.io/capsrec/">
+<!-- The left-weighted composition is deliberate: the lamp sits where the LED sits on a
+     caps lock key and the name sits below it, matching .key .led and .key .lbl. Rendered
+     as a rounded card it reads as the keycap itself, so the empty right is the keycap's
+     own margin. Do not fill it in the name of symmetry. -->
 <meta property="og:image" content="https://tokyomeltdown.github.io/capsrec/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -30,7 +34,8 @@
   a{color:inherit}
   .mono{font-size:13px;letter-spacing:0;color:#6DD498;font-weight:600}
 
-  /* 見出し用。横方向に色相だけを回し、明度は落とさない（暗くすると和文が潰れる） */
+  /* For headings. The gradient turns the hue across the line but keeps the lightness up:
+     darkening it fills in the counters of Japanese glyphs. */
   .g-head{
     background:linear-gradient(100deg,#A8EFC6 0%,#6ADB9B 34%,#45D3B8 66%,#5CC9E0 100%);
     -webkit-background-clip:text;background-clip:text;
@@ -57,9 +62,14 @@
   .navbuy{font-size:13px;color:var(--fg2);text-decoration:none}
   .navbuy:hover{color:var(--fg)}
 
-  .stage{position:relative;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:96px 0 56px}
+  /* At a plain 100svh a tall display leaves so much room above and below that the
+     content reads as smaller than it is. Cap the band, and let the next section peek. */
+  .stage{position:relative;min-height:min(100svh,940px);display:flex;flex-direction:column;justify-content:center;padding:88px 0 52px}
   #glow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-  .stage .wrap{position:relative;z-index:2}
+  /* .stage is a flex container, so .wrap is a flex item and inherits min-width:auto.
+     Without this it refuses to shrink below its widest child and pushes the page sideways. */
+  .stage .wrap{position:relative;z-index:2;min-width:0}
+  .demo{min-width:0}
   .eyebrow{margin-bottom:14px}
   h1{font-size:clamp(40px,6.4vw,80px);line-height:1.06;letter-spacing:-.035em;font-weight:600}
   h1 em{font-style:normal;font-weight:600;display:block}
@@ -73,13 +83,17 @@
   .key .lbl{position:absolute;left:16px;bottom:12px;font-size:13px;color:#C9CBCA}
   .key .led{position:absolute;left:16px;top:15px;width:9px;height:9px;border-radius:50%;background:#232326;transition:.2s}
   .key.on .led{background:var(--led);box-shadow:0 0 16px 4px var(--ledsoft)}
-  .readout{min-width:252px}
+  /* A fixed min-width here cannot shrink, and below about 300px it pushes the whole
+     page sideways. Keep the size but let it give way when there is no room. */
+  /* min-width:0 is the part that matters: a flex item defaults to min-width:auto and
+     will not go below its content, so max-width alone does nothing here. */
+  .readout{width:min(252px,100%);min-width:0}
   .status{display:flex;align-items:center;gap:10px;font-size:15px}
   .rdot{width:10px;height:10px;border-radius:50%;background:#3A3A3E}
   .rdot.on{background:var(--led);animation:bp 1.4s ease-in-out infinite}
   @keyframes bp{0%,100%{opacity:1}50%{opacity:.35}}
   .timer{font-family:ui-monospace,Menlo,monospace;font-size:34px;margin-top:4px}
-  #bars{display:block;margin-top:8px;width:252px;height:34px}
+  #bars{display:block;margin-top:8px;width:100%;max-width:252px;height:34px}
   .hint{font-size:12px;color:var(--fg3);margin-top:10px}
 
   .filecard{margin-top:28px;display:none;align-items:center;gap:14px;background:var(--panel);
@@ -97,17 +111,33 @@
   .btn-g:hover{background:rgba(255,255,255,.07)}
   .spec{margin-top:18px;font-size:13px;color:var(--fg3)}
 
-  section{padding:130px 0;border-top:1px solid var(--line)}
+  /* Identical gaps everywhere hide where the emphasis is. Give price the widest run-up. */
+  section{padding:112px 0;border-top:1px solid var(--line)}
+  section#price{padding:146px 0}
   .reveal{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease}
   .reveal.in{opacity:1;transform:none}
   h2{font-size:clamp(32px,4.2vw,52px);line-height:1.1;letter-spacing:-.03em;font-weight:600}
   .slede{margin-top:20px;max-width:34em;color:var(--fg2);font-size:19px;line-height:1.5}
-  .sh{margin-bottom:16px}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:46px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px}
+  /* No boxes here: rules above and below, hairlines between the columns, so this reads
+     differently from 02 (one large box) and 03 (horizontal hairlines).
+     auto-fit would leave a band of widths where the columns sit side by side with no
+     divider, so the column count and the dividers switch at the same 760px. */
+  .grid{display:grid;grid-template-columns:1fr;gap:0;margin-top:46px;
+    border-top:1px solid var(--line)}
+  .card{background:none;border:0;border-radius:0;padding:28px 0;border-bottom:1px solid var(--line)}
   .card h3{font-size:15px;font-weight:600;margin-bottom:8px}
-  .card p{font-size:14px;color:var(--fg2)}
+  .card p{font-size:14px;color:var(--fg2);max-width:34em}
+  @media(min-width:760px){
+    .grid{grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)}
+    .card{border-bottom:0;border-left:1px solid var(--line);padding:30px 24px 34px}
+    .card:first-child{border-left:0;padding-left:0}
+    .card:last-child{padding-right:0}
+  }
+
+  /* A hairline running from the section number turns the break into structure. */
+  .sh{margin-bottom:18px;display:flex;align-items:center;gap:16px}
+  .sh::after{content:"";height:1px;background:var(--line);flex:1}
 
   .rows{margin-top:52px;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
   .row{background:var(--panel);padding:34px}
@@ -115,25 +145,47 @@
   .row h3{font-size:clamp(19px,2.2vw,25px);font-weight:600;letter-spacing:-.01em}
   .row p{margin-top:10px;color:var(--fg2);font-size:15px;max-width:44em}
 
-  .trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:46px}
-  .trust div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px}
-  .trust h3{font-size:15px;font-weight:600;margin-bottom:8px}
-  .trust p{font-size:14px;color:var(--fg2)}
+  /* These are promises rather than features, so hairlines instead of boxes.
+     With fewer boxes about, the ones that remain (price, FAQ) start to mean something. */
+  .trust{margin-top:46px;border-top:1px solid var(--line)}
+  .trust div{border-bottom:1px solid var(--line);padding:26px 0;display:grid;gap:6px}
+  .trust h3{font-size:15px;font-weight:600}
+  .trust p{font-size:14px;color:var(--fg2);max-width:44em}
+  @media(min-width:820px){
+    .trust div{grid-template-columns:minmax(0,16em) minmax(0,1fr);gap:36px;align-items:baseline}
+  }
 
-  .pricebox{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:38px;max-width:520px;margin-top:40px}
-  .amt{font-size:46px;font-weight:600;letter-spacing:-.025em}
-  ul.ck{list-style:none;margin-top:22px;display:grid;gap:10px}
+  /* Numbers buy trust rather than decorate. One quiet line, only facts that matter to
+     someone who works with sound. */
+  .specstrip{margin-top:54px;padding-top:22px;border-top:1px solid var(--line);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+    letter-spacing:.06em;color:var(--fg3);line-height:2.1}
+
+  /* The one box left on the page. This is where you act, so being a box earns its keep. */
+  .pricebox{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:40px;max-width:640px;margin-top:40px}
+  .amt{font-size:56px;font-weight:600;letter-spacing:-.03em;line-height:1}
+  ul.ck{list-style:none;margin-top:26px;display:grid;gap:10px}
+  @media(min-width:820px){
+    .pricebox{padding:46px}
+    .amt{font-size:64px}
+  }
   ul.ck li{font-size:14px;color:var(--fg2);padding-left:20px;position:relative}
   ul.ck li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:50%;background:var(--led)}
 
   .faq{margin-top:46px;display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-  .faq div{background:var(--panel);padding:26px 30px}
-  .faq h3{font-size:15px;font-weight:600;margin-bottom:8px}
-  .faq p{font-size:14px;color:var(--fg2)}
+  /* Collapsed. Left open, these turn the lower half of the page into a wall of text. */
+  .qa{background:var(--panel)}
+  .qa summary{list-style:none;cursor:pointer;padding:22px 30px;font-size:15px;font-weight:600;
+    display:flex;align-items:baseline;justify-content:space-between;gap:20px}
+  .qa summary::-webkit-details-marker{display:none}
+  .qa summary::after{content:"+";color:var(--fg3);font-weight:400;font-size:17px;line-height:1;flex:none}
+  .qa[open] summary::after{content:"–"}
+  .qa summary:hover{background:var(--panel2)}
+  .qa p{padding:0 30px 26px;font-size:14px;color:var(--fg2);max-width:52em}
 
   .closer{text-align:center;padding:140px 0}
   .closer h2{max-width:16em;margin:0 auto}
-  /* アプリアイコンのリングを小さく再現し、コピーの「ランプ」を受ける */
+  /* A small echo of the app icon's ring, so the lamp the copy talks about is present. */
   .lamp{width:38px;height:38px;margin:0 auto 30px;border-radius:50%;
     border:4px solid transparent;
     background:linear-gradient(#000,#000) padding-box,
@@ -142,6 +194,82 @@
   .lamp::after{content:"";position:absolute;inset:7px;border-radius:50%;background:#F0FFF5;
     box-shadow:0 0 12px 2px rgba(240,255,245,.35)}
   .closer .cta{justify-content:center}
+
+  /* ============================================================
+     Centred, symmetric setting.
+     Headings, short leads and the controls sit in the middle.
+     Long body copy and the FAQ question rows stay left-aligned: one for reading, one
+     because it is a control.
+     ============================================================ */
+  .stage .wrap,section .wrap,.closer{text-align:center}
+  .lede,.slede{margin-left:auto;margin-right:auto}
+  .demo,.cta{justify-content:center}
+  .filecard{margin-left:auto;margin-right:auto}
+  .readout{text-align:center}
+  .status{justify-content:center}
+  #bars{margin-left:auto;margin-right:auto}
+
+  /* Equal hairlines either side so the number sits centred rather than pushed left. */
+  .sh{justify-content:center}
+  .sh::before,.sh::after{content:"";height:1px;background:var(--line);flex:0 1 clamp(60px,14vw,190px)}
+
+  /* Columns centre their text; the vertical dividers still do their work. */
+  .card p{margin-left:auto;margin-right:auto}
+  .row p{margin-left:auto;margin-right:auto}
+
+  /* Promises: one centred column, separated by hairlines. */
+  .trust div{grid-template-columns:1fr;text-align:center;padding:30px 0}
+  .trust p{margin-left:auto;margin-right:auto}
+
+  /* Price: centre the box itself, and set the dot inline before the text rather than
+     absolutely at the line start. */
+  .pricebox{margin-left:auto;margin-right:auto}
+  /* Centring each line individually scatters the dots. Shrink the list to its content
+     and centre that block instead: the dots line up, and the whole still reads centred. */
+  ul.ck{grid-template-columns:none;justify-items:start;width:fit-content;
+    margin-left:auto;margin-right:auto}
+  ul.ck li{padding-left:0;position:static;display:flex;align-items:baseline;gap:12px;text-align:left}
+  /* Same lamp as .lamp and .navdot.on elsewhere on the page. Let it glow faintly. */
+  ul.ck li::before{position:static;flex:none;transform:translateY(-2px);
+    box-shadow:0 0 8px 1px var(--ledsoft)}
+
+  /* The question rows are a control, so they stay left-aligned and easy to hit. */
+  .faq{text-align:left}
+
+  footer{text-align:center}
+  /* Links on one centred line, wrapping if they must; the copyright drops below. */
+  footer .wrap{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0 22px}
+  footer a{margin:0}
+  footer p{flex-basis:100%}
+
+  /* On a large display the clamps top out and only the side margins keep growing.
+     Lift the type and the column in steps so the page grows with the screen. */
+  @media(min-width:1500px){
+    body{font-size:18px}
+    .wrap{max-width:1160px}
+    h1{font-size:88px}
+    h2{font-size:58px}
+    .lede{font-size:23px}
+    .slede{font-size:20px}
+    .timer{font-size:46px}
+    .key{width:248px;height:100px}
+    .key .lbl{font-size:14px;left:18px;bottom:14px}
+    .key .led{left:18px;top:18px;width:11px;height:11px}
+    .readout{width:310px}
+    #bars{max-width:310px}
+    #bars{height:42px}
+    .status{font-size:16px}
+    .demo{gap:46px;margin-top:52px}
+    section{padding:128px 0}
+    section#price{padding:164px 0}
+  }
+  @media(min-width:1900px){
+    .wrap{max-width:1264px}
+    h1{font-size:98px}
+    h2{font-size:64px}
+    .lede{font-size:25px}
+    .btn{height:52px;font-size:18px;padding:0 30px}
+  }
 
   footer{padding:52px 0 72px;border-top:1px solid var(--line);color:var(--fg3);font-size:13px}
   footer a{margin-right:20px;color:var(--fg2);text-decoration:none}
@@ -154,6 +282,13 @@
     .key,.btn{transition:none}
   }
   @media(max-width:700px){.key{width:164px;height:70px}.demo{gap:24px}section{padding:88px 0}}
+  /* On a narrow screen the box padding leaves the list filling the interior, which
+     loses the sense of a block placed in the middle. Tighten the padding. */
+  @media(max-width:520px){
+    .pricebox{padding:30px 22px;border-radius:14px}
+    .faq .qa summary{padding:20px 20px}
+    .qa p{padding:0 20px 22px}
+  }
 </style>
 </head>
 <body class="lang-en">
@@ -234,6 +369,10 @@
       <h3><span class="en">The key itself tells you it's recording.</span><span class="ja">録っていることは、キーが教えてくれる。</span></h3>
       <p><span class="en">The caps lock lamp is lit the whole time, and the menu bar icon glows green. Nothing runs on without you noticing.</span><span class="ja">録画中はcaps lockのランプが点いたまま。メニューバーのアイコンも緑に灯るので、切り忘れが起きません。</span></p></div>
   </div>
+  <p class="specstrip">
+    <span class="en">48 kHz · 32-bit float WAV stems · H.264 / HEVC · four quality presets · microphone channel select · microphone delay compensation · macOS 15+ · Apple silicon &amp; Intel</span>
+    <span class="ja">48 kHz · 32-bit float の WAV ステム · H.264 / HEVC · 画質4段階 · マイク入力チャンネル選択 · マイク遅延補正 · macOS 15+ · Apple silicon &amp; Intel</span>
+  </p>
 </div></section>
 
 <section id="privacy"><div class="wrap reveal">
@@ -259,10 +398,9 @@
   <div class="pricebox">
     <div class="amt">$9</div>
     <ul class="ck">
-      <li><span class="en">One-time purchase, not a subscription</span><span class="ja">買い切り。サブスクリプションではありません</span></li>
-      <li><span class="en">Updates included</span><span class="ja">アップデートは無料</span></li>
+      <li><span class="en">One-time purchase</span><span class="ja">買い切り</span></li>
       <li><span class="en">One licence covers up to 5 Macs</span><span class="ja">1つのライセンスで最大5台まで</span></li>
-      <li><span class="en">No refunds — that's what the free trial is for</span><span class="ja">返金不可。14日間の無料期間でお確かめください</span></li>
+      <li><span class="en">14-day free trial</span><span class="ja">14日間無料トライアル</span></li>
     </ul>
     <div class="cta"><a class="btn btn-p" href="https://tokyomeltdown.gumroad.com/l/capsrec" target="_blank" rel="noopener"><span class="en">Buy caps REC</span><span class="ja">購入する</span></a><a class="btn btn-g" href="https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg"><span class="en">Download the free trial</span><span class="ja">無料で試す</span></a></div>
   </div>
@@ -272,16 +410,16 @@
   <div class="sh"><span class="num">05</span></div>
   <h2><span class="en">Questions.</span><span class="ja">よくある質問。</span></h2>
   <div class="faq">
-    <div><h3><span class="en">Do I need BlackHole or another audio driver?</span><span class="ja">BlackHoleなどの仮想オーディオドライバは必要ですか？</span></h3>
-      <p><span class="en">No. caps REC captures system audio through macOS itself.</span><span class="ja">不要です。macOSの仕組みを使ってシステム音を直接録ります。</span></p></div>
-    <div><h3><span class="en">Will typing be stuck in capitals while recording?</span><span class="ja">録画中は大文字入力になりますか？</span></h3>
-      <p><span class="en">Yes — caps lock is on, so it behaves as caps lock. You can also start and stop from the menu instead.</span><span class="ja">はい。caps lockが点灯している状態なので大文字になります。メニューから録画を開始／停止することもできます。</span></p></div>
-    <div><h3><span class="en">Which permissions does it ask for?</span><span class="ja">求められる許可は？</span></h3>
-      <p><span class="en">Screen recording, microphone, and access to your save folder. Input monitoring is never requested.</span><span class="ja">画面収録・マイク・保存先フォルダの3つです。入力監視は要求しません。</span></p></div>
-    <div><h3><span class="en">What happens after the 14 days?</span><span class="ja">14日が過ぎたらどうなりますか？</span></h3>
-      <p><span class="en">Recording stops. There is no reduced-feature mode and no watermark — you enter your licence key and carry on where you left off. Because there are no refunds, please decide during the trial.</span><span class="ja">録画ができなくなります。機能を削った状態やウォーターマーク付きで使い続けることはできません。ライセンスキーを入力すればそのまま再開できます。返金は受け付けていないので、無料期間中にお確かめください。</span></p></div>
-    <div><h3><span class="en">How do I uninstall it?</span><span class="ja">アンインストールは？</span></h3>
-      <p><span class="en">Move capsREC to the Trash. That's all.</span><span class="ja">capsRECをゴミ箱に入れるだけです。</span></p></div>
+    <details class="qa"><summary><span class="en">Do I need BlackHole or another audio driver?</span><span class="ja">BlackHoleなどの仮想オーディオドライバは必要ですか？</span></summary>
+      <p><span class="en">No. caps REC captures system audio through macOS itself.</span><span class="ja">不要です。macOSの仕組みを使ってシステム音を直接録ります。</span></p></details>
+    <details class="qa"><summary><span class="en">Will typing be stuck in capitals while recording?</span><span class="ja">録画中は大文字入力になりますか？</span></summary>
+      <p><span class="en">Yes — caps lock is on, so it behaves as caps lock. You can also start and stop from the panel instead.</span><span class="ja">はい。caps lockが点灯している状態なので大文字になります。パネルのボタンから録画を開始／停止することもできます。</span></p></details>
+    <details class="qa"><summary><span class="en">Which permissions does it ask for?</span><span class="ja">求められる許可は？</span></summary>
+      <p><span class="en">Screen recording, microphone, and access to your save folder. Input monitoring is never requested.</span><span class="ja">画面収録・マイク・保存先フォルダの3つです。入力監視は要求しません。</span></p></details>
+    <details class="qa"><summary><span class="en">What happens after the 14 days?</span><span class="ja">14日が過ぎたらどうなりますか？</span></summary>
+      <p><span class="en">Recording stops. There is no reduced-feature mode and no watermark — you enter your licence key and carry on where you left off. Because there are no refunds, please decide during the trial.</span><span class="ja">録画ができなくなります。機能を削った状態やウォーターマーク付きで使い続けることはできません。ライセンスキーを入力すればそのまま再開できます。返金は受け付けていないので、無料期間中にお確かめください。</span></p></details>
+    <details class="qa"><summary><span class="en">How do I uninstall it?</span><span class="ja">アンインストールは？</span></summary>
+      <p><span class="en">Move capsREC to the Trash. That's all.</span><span class="ja">capsRECをゴミ箱に入れるだけです。</span></p></details>
   </div>
 </div></section>
 

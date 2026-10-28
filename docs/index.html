@@ -332,7 +332,7 @@
     </div>
 
     <div class="cta">
-      <a class="btn btn-p" href="https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg"><span class="en">Download the free trial</span><span class="ja">無料トライアルをダウンロード</span></a>
+      <a class="btn btn-p dl" href="https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg"><span class="en">Download the free trial</span><span class="ja">無料トライアルをダウンロード</span></a>
       <a class="btn btn-g" href="#price"><span class="en">See pricing</span><span class="ja">価格を見る</span></a>
     </div>
     <p class="spec"><span class="en">Free 14-day trial · no account needed · macOS 15+ · Apple silicon &amp; Intel · signed &amp; notarized</span>
@@ -402,7 +402,7 @@
       <li><span class="en">One licence covers up to 5 Macs</span><span class="ja">1つのライセンスで最大5台まで</span></li>
       <li><span class="en">14-day free trial</span><span class="ja">14日間無料トライアル</span></li>
     </ul>
-    <div class="cta"><a class="btn btn-p" href="https://tokyomeltdown.gumroad.com/l/capsrec" target="_blank" rel="noopener"><span class="en">Buy caps REC</span><span class="ja">購入する</span></a><a class="btn btn-g" href="https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg"><span class="en">Download the free trial</span><span class="ja">無料で試す</span></a></div>
+    <div class="cta"><a class="btn btn-p" href="https://tokyomeltdown.gumroad.com/l/capsrec" target="_blank" rel="noopener"><span class="en">Buy caps REC</span><span class="ja">購入する</span></a><a class="btn btn-g dl" href="https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg"><span class="en">Download the free trial</span><span class="ja">無料で試す</span></a></div>
   </div>
 </div></section>
 
@@ -426,7 +426,7 @@
 <div class="closer wrap reveal">
   <div class="lamp" aria-hidden="true"></div>
   <h2><span class="en">That light finally<br>means something.</span><span class="ja">そのランプは、<br>もう飾りじゃない。</span></h2>
-  <div class="cta"><a class="btn btn-p" href="https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg"><span class="en">Download the free trial</span><span class="ja">無料トライアルをダウンロード</span></a></div>
+  <div class="cta"><a class="btn btn-p dl" href="https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg"><span class="en">Download the free trial</span><span class="ja">無料トライアルをダウンロード</span></a></div>
   <p class="spec"><span class="en">macOS 15+ · Signed &amp; notarized · $9 one-time</span><span class="ja">macOS 15+ · 署名・公証済み · $9 買い切り</span></p>
 </div>
 
@@ -518,6 +518,19 @@
 
   setLang((navigator.language||'en').slice(0,2)==='ja'?'ja':'en');
   draw();   // 待機状態を1回描画（以降は録画中のみループ）
+
+  // The browser's own confirmation before the package downloads. The version and size are written here by hand:
+  // change them with each release (Finder's size, in decimal units).
+  var DL={version:'1.2',size:'1.0 MB'};
+  document.querySelectorAll('a.dl').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var ja=document.body.classList.contains('lang-ja');
+      var msg=ja
+        ?'capsREC.pkg（caps REC '+DL.version+'・約 '+DL.size+'）をダウンロードしますか？'
+        :'Download capsREC.pkg (caps REC '+DL.version+', about '+DL.size+')?';
+      if(!window.confirm(msg)) e.preventDefault();
+    });
+  });
 })();
 </script>
 </body>

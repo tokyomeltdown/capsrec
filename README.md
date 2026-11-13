@@ -6,7 +6,7 @@ Press caps lock and your Mac starts recording. Press it again and the file is sa
 
 → **[Download the free trial](https://github.com/tokyomeltdown/capsrec/releases/latest/download/capsREC.pkg)** — 14 days, every feature, no account needed
 → **[Landing page](https://tokyomeltdown.github.io/capsrec/)**
-→ **[Buy on Gumroad — $9](https://tokyomeltdown.gumroad.com/l/capsrec)**
+→ **[Buy on Gumroad — $13](https://tokyomeltdown.gumroad.com/l/capsrec)**
 
 ---
 

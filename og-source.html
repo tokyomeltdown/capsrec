@@ -1,22 +1,37 @@
 <!doctype html>
-<!-- Source for docs/og-image.png (1200x630). Render with the same headless
-     Chrome call as EQMirror/lp-site/make-og.sh. Redrawn on 2026-11-13 to match
-     the earlier card, which had no source; only the price changed. -->
+<!-- Source for docs/og-image.png (1200x630). Render with make-og.sh.
+     Same ground, grid and type as the page (pure black, faint grid, mono label,
+     the headline with its gradient), with the app icon on the right as on the
+     family's cards. Social apps crop the card to the middle; keep the text and
+     the icon well inside. -->
 <html><head><meta charset="utf-8">
 <style>
-  html,body{margin:0;width:1200px;height:630px;background:#000;overflow:hidden}
-  body{position:relative;font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
-  .glow{position:absolute;left:-118px;top:-50px;width:520px;height:520px;border-radius:50%;
-        background:radial-gradient(circle,rgba(46,140,84,.55) 0%,rgba(30,90,55,.32) 38%,rgba(0,0,0,0) 68%)}
-  .mark{position:absolute;left:90px;top:150px;width:104px;height:104px;border-radius:50%;box-sizing:border-box;
-        border:13px solid transparent;background:linear-gradient(#000,#000) padding-box,linear-gradient(160deg,#a6edc4,#3fb46a) border-box}
-  .dot{position:absolute;left:121px;top:181px;width:42px;height:42px;border-radius:50%;background:#effcf3}
-  h1{position:absolute;left:88px;top:296px;margin:0;font-size:98px;font-weight:700;color:#f5f5f7;letter-spacing:-1px}
-  .sub{position:absolute;left:90px;top:424px;margin:0;font-size:43px;color:#86868b}
-  .foot{position:absolute;left:90px;top:514px;margin:0;font-size:28px;color:#86868b;word-spacing:2px}
+  html,body{margin:0;width:1200px;height:630px;overflow:hidden}
+  body{position:relative;background:#000;color:#f5f5f7;-webkit-font-smoothing:antialiased;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",sans-serif;
+    background-image:linear-gradient(rgba(245,245,247,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(245,245,247,.055) 1px,transparent 1px);
+    background-size:48px 48px;background-position:-1px -1px}
+  .copy{position:absolute;left:72px;top:172px;width:640px}
+  .k{font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;font-size:15px;letter-spacing:.22em;text-transform:uppercase;color:#86868b;margin-bottom:26px}
+  h1{margin:0;font-size:62px;line-height:1.06;font-weight:600;letter-spacing:-.035em}
+  h1 em{font-style:normal;display:block;width:fit-content;
+    background:linear-gradient(100deg,#A8EFC6 0%,#6ADB9B 34%,#45D3B8 66%,#5CC9E0 100%);
+    background-size:116.7% 100%;background-position:50% 0;
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+  .sub{margin:24px 0 0;font-size:24px;line-height:1.45;color:#a1a1a6}
+  .foot{margin-top:30px;font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;font-size:15px;letter-spacing:.06em;color:#86868b}
+  .foot b{color:#f5f5f7;font-weight:600}
+  /* The icon is dark artwork on a black ground. Its plate is a squircle, which no
+     border-radius matches, so the hairline edge is a drop-shadow that follows the
+     artwork's own outline. */
+  .icon{position:absolute;right:96px;top:50%;width:340px;height:340px;margin-top:-170px;
+    filter:drop-shadow(0 0 .6px rgba(245,245,247,.55)) drop-shadow(0 30px 60px rgba(0,0,0,.7))}
 </style></head><body>
-  <div class="glow"></div><div class="mark"></div><div class="dot"></div>
-  <h1>caps REC</h1>
-  <p class="sub">Turn caps lock into your record button.</p>
-  <p class="foot">macOS 15+ &nbsp;·&nbsp; No virtual audio driver &nbsp;·&nbsp; $13 one-time</p>
+  <div class="copy">
+    <div class="k">caps REC · for macOS</div>
+    <h1>Turn caps lock<em>into your record button.</em></h1>
+    <p class="sub">Your screen, its sound and your microphone, in one video.</p>
+    <p class="foot">macOS 15+ &nbsp;·&nbsp; Apple silicon &amp; Intel &nbsp;·&nbsp; <b>$13</b></p>
+  </div>
+  <img class="icon" src="og-icon.png" alt="">
 </body></html>
